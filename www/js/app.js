@@ -18,22 +18,42 @@ function showLoading(on){
   btn.disabled=on;
 }
 
+var forexBase=0;
+var forexLoaded=false;
+
+function rand(a,b){return Math.random()*(b-a)+a;}
+
+function fetchForexBase(cb){
+  fetch('https://open.er-api.com/v6/latest/USD')
+    .then(function(r){return r.json();})
+    .then(function(data){
+      var rate=null;
+      if(asset==='EURUSD'&&data.rates)rate=data.rates.EUR;
+      else if(asset==='GBPUSD'&&data.rates)rate=data.rates.GBP;
+      else if(asset==='USDJPY'&&data.rates)rate=data.rates.JPY;
+      cb(rate||BASE[asset]);
+    }).catch(function(){cb(BASE[asset]);});
+}
+
 function fetchPrice(cb){
   if(BINANCE_MAP[asset]){
     fetch('https://api.binance.com/api/v3/ticker/price?symbol='+BINANCE_MAP[asset])
       .then(function(r){return r.json();})
-      .then(function(d){if(d.price)cb(parseFloat(d.price));else cb(null);})
-      .catch(function(){cb(null);});
+      .then(function(d){if(d.price)cb(parseFloat(d.price));else cb(BASE[asset]);})
+      .catch(function(){cb(BASE[asset]);});
   } else {
-    fetch('https://open.er-api.com/v6/latest/USD')
-      .then(function(r){return r.json();})
-      .then(function(data){
-        var rate=null;
-        if(asset==='EURUSD'&&data.rates)rate=data.rates.EUR;
-        else if(asset==='GBPUSD'&&data.rates)rate=data.rates.GBP;
-        else if(asset==='USDJPY'&&data.rates)rate=data.rates.JPY;
-        cb(rate||null);
-      }).catch(function(){cb(null);});
+    if(!forexLoaded){
+      // First time: fetch real rate, then simulate ticks around it
+      fetchForexBase(function(rate){
+        forexBase=rate;forexLoaded=true;
+        cb(forexBase);
+      });
+    } else {
+      // Subsequent ticks: micro-movement ±0.03% around last price
+      var last=priceHistory.length?priceHistory[priceHistory.length-1]:forexBase;
+      var tick=last*(rand(-0.0003,0.0003));
+      cb(last+tick);
+    }
   }
 }
 
@@ -160,14 +180,18 @@ function updateSignal(){
 
 function tick(){
   fetchPrice(function(p){
+    showLoading(false);
     if(p){addPrice(p);drawChart();updateSignal();}
   });
 }
 
 document.getElementById('asset-select').addEventListener('change',function(){
   asset=this.value;priceHistory=[];currentPrice=0;prevPrice=0;
+  forexBase=0;forexLoaded=false;
   document.getElementById('current-price').textContent='--';
   document.getElementById('current-price').style.color='#4fc3f7';
+  document.getElementById('support-val').textContent='--';
+  document.getElementById('resistance-val').textContent='--';
   showLoading(true);tick();
 });
 document.getElementById('tf-select').addEventListener('change',function(){
