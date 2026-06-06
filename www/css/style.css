@@ -1,1 +1,32 @@
-*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0a0e1a;color:#e0e6f0;min-height:100vh}.app{max-width:480px;margin:0 auto;padding:20px 16px 40px}header{text-align:center;margin-bottom:24px;padding-top:10px}header h1{font-size:24px;font-weight:700;color:#fff}.subtitle{color:#6b7a99;font-size:13px;margin-top:4px}.input-section{background:#141927;border-radius:16px;padding:16px;margin-bottom:20px;border:1px solid #1e2740}.input-section label{display:block;font-size:13px;color:#8892aa;margin-bottom:10px}textarea{width:100%;background:#0d1120;border:1px solid #1e2740;border-radius:10px;color:#e0e6f0;font-size:14px;padding:12px;resize:none;height:90px;outline:none;font-family:monospace}textarea:focus{border-color:#3d7eff}textarea::placeholder{color:#3a4560}button{width:100%;margin-top:12px;background:linear-gradient(135deg,#3d7eff,#7c3dff);color:white;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:600;cursor:pointer}.hidden{display:none}.signal-box{border-radius:16px;padding:24px;text-align:center;margin-bottom:16px;border:2px solid transparent}.signal-box.buy{background:rgba(0,200,100,0.1);border-color:#00c864}.signal-box.sell{background:rgba(255,60,80,0.1);border-color:#ff3c50}.signal-box.hold{background:rgba(255,180,0,0.1);border-color:#ffb400}.signal-label{font-size:36px;font-weight:800}.buy .signal-label{color:#00c864}.sell .signal-label{color:#ff3c50}.hold .signal-label{color:#ffb400}.signal-desc{margin-top:8px;font-size:14px;color:#8892aa}.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}.stat-card{background:#141927;border-radius:12px;padding:14px;border:1px solid #1e2740}.stat-title{font-size:11px;color:#6b7a99;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}.stat-value{font-size:18px;font-weight:700;color:#fff}.chart-section{background:#141927;border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid #1e2740}.advice-section{background:#141927;border-radius:16px;padding:16px;border:1px solid #1e2740}.advice-section h3{font-size:15px;margin-bottom:12px;color:#c0cce0}.advice-text{font-size:13px;color:#8892aa;line-height:1.7}.advice-text .point{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px}.dot{width:6px;height:6px;border-radius:50%;margin-top:6px;flex-shrink:0}.dot.green{background:#00c864}.dot.red{background:#ff3c50}.dot.yellow{background:#ffb400}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0e1a;color:#e0e6f0;font-family:'Segoe UI',sans-serif;min-height:100vh}
+.header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#0f1526;border-bottom:1px solid #1e2a45}
+.logo{font-size:15px;font-weight:700;color:#4fc3f7;letter-spacing:1px}
+.header-right{display:flex;align-items:center;gap:10px}
+.clock{font-size:12px;color:#90a4ae;font-family:monospace}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#4caf50;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.asset-bar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:#0d1220;border-bottom:1px solid #1e2a45}
+.asset-select,.tf-select{background:#1a2235;color:#e0e6f0;border:1px solid #2a3a5c;border-radius:6px;padding:6px 10px;font-size:13px;outline:none}
+.current-price{margin-left:auto;font-size:20px;font-weight:700;color:#4fc3f7;font-family:monospace}
+.chart-container{width:100%;background:#0d1220;border-bottom:1px solid #1e2a45}
+#chart{width:100%;height:260px;display:block}
+.signal-panel{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;padding:12px 16px}
+.signal-card{background:#0f1526;border:1px solid #1e2a45;border-radius:10px;padding:12px;text-align:center}
+.signal-label{font-size:10px;color:#546e7a;letter-spacing:1px;margin-bottom:6px}
+.signal-value{font-size:15px;font-weight:700;color:#e0e6f0}
+.buy{color:#4caf50}.sell{color:#ef5350}.neutral{color:#ffa726}
+.indicators-panel{padding:12px 16px;background:#0f1526;border-top:1px solid #1e2a45;display:flex;flex-direction:column;gap:10px}
+.indicator-row{display:flex;align-items:center;gap:10px}
+.ind-label{font-size:12px;color:#546e7a;width:40px;flex-shrink:0}
+.ind-bar-wrap{flex:1;height:6px;background:#1a2235;border-radius:3px;overflow:hidden}
+.ind-bar{height:100%;border-radius:3px;width:50%;background:#4fc3f7;transition:width .5s,background .5s}
+.ind-val{font-size:12px;font-family:monospace;color:#90a4ae;width:45px;text-align:right}
+.analysis-panel{padding:12px 16px;background:#0a0e1a}
+.analysis-title{font-size:13px;color:#4fc3f7;margin-bottom:10px;font-weight:600}
+.analysis-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.analysis-item{background:#0f1526;border:1px solid #1e2a45;border-radius:8px;padding:10px 12px}
+.a-label{font-size:10px;color:#546e7a;margin-bottom:4px}
+.a-val{font-size:14px;font-weight:600;font-family:monospace}
+.refresh-btn{width:calc(100% - 32px);margin:12px 16px;padding:14px;background:linear-gradient(135deg,#1565c0,#0288d1);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer}
+.refresh-btn:active{opacity:.8}

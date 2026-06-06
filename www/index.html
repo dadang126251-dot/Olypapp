@@ -1,43 +1,93 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>Olymp Analyzer</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <div class="app">
-    <header>
-      <h1>📊 Olymp Analyzer</h1>
-      <p class="subtitle">Trading Signal Generator</p>
+  <div id="app">
+    <header class="header">
+      <div class="logo">OLYMP ANALYZER</div>
+      <div class="header-right">
+        <span id="clock" class="clock"></span>
+        <span class="status-dot"></span>
+      </div>
     </header>
-    <div class="input-section">
-      <label>Masukkan Harga (pisah dengan koma)</label>
-      <textarea id="priceInput" placeholder="Contoh: 100, 102, 98, 105, 103, 110, 108..."></textarea>
-      <button onclick="analyze()">🔍 Analisis</button>
+    <div class="asset-bar">
+      <select id="asset-select" class="asset-select">
+        <option value="EURUSD">EUR/USD</option>
+        <option value="GBPUSD">GBP/USD</option>
+        <option value="USDJPY">USD/JPY</option>
+        <option value="BTCUSD">BTC/USD</option>
+        <option value="ETHUSD">ETH/USD</option>
+        <option value="XAUUSD">XAU/USD</option>
+      </select>
+      <select id="tf-select" class="tf-select">
+        <option value="5">M5</option>
+        <option value="15">M15</option>
+        <option value="60">H1</option>
+      </select>
+      <div id="current-price" class="current-price">--</div>
     </div>
-    <div id="result" class="result hidden">
-      <div class="signal-box" id="signalBox">
-        <div class="signal-label" id="signalLabel">-</div>
-        <div class="signal-desc" id="signalDesc">-</div>
+    <div class="chart-container">
+      <canvas id="chart"></canvas>
+    </div>
+    <div class="signal-panel">
+      <div class="signal-card">
+        <div class="signal-label">SINYAL</div>
+        <div class="signal-value" id="signal-text">...</div>
       </div>
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-title">Harga Terakhir</div><div class="stat-value" id="lastPrice">-</div></div>
-        <div class="stat-card"><div class="stat-title">RSI (14)</div><div class="stat-value" id="rsiValue">-</div></div>
-        <div class="stat-card"><div class="stat-title">MA 5</div><div class="stat-value" id="ma5Value">-</div></div>
-        <div class="stat-card"><div class="stat-title">MA 10</div><div class="stat-value" id="ma10Value">-</div></div>
-        <div class="stat-card"><div class="stat-title">Trend</div><div class="stat-value" id="trendValue">-</div></div>
-        <div class="stat-card"><div class="stat-title">Perubahan</div><div class="stat-value" id="changeValue">-</div></div>
+      <div class="signal-card">
+        <div class="signal-label">KEKUATAN</div>
+        <div class="signal-value" id="signal-strength">--</div>
       </div>
-      <div class="chart-section"><canvas id="priceChart"></canvas></div>
-      <div class="advice-section">
-        <h3>📋 Analisis Detail</h3>
-        <div id="adviceText" class="advice-text"></div>
+      <div class="signal-card">
+        <div class="signal-label">DURASI</div>
+        <div class="signal-value" id="signal-duration">5 min</div>
       </div>
     </div>
+    <div class="indicators-panel">
+      <div class="indicator-row">
+        <span class="ind-label">RSI</span>
+        <div class="ind-bar-wrap"><div class="ind-bar" id="rsi-bar"></div></div>
+        <span class="ind-val" id="rsi-val">--</span>
+      </div>
+      <div class="indicator-row">
+        <span class="ind-label">MACD</span>
+        <div class="ind-bar-wrap"><div class="ind-bar" id="macd-bar"></div></div>
+        <span class="ind-val" id="macd-val">--</span>
+      </div>
+      <div class="indicator-row">
+        <span class="ind-label">Stoch</span>
+        <div class="ind-bar-wrap"><div class="ind-bar" id="stoch-bar"></div></div>
+        <span class="ind-val" id="stoch-val">--</span>
+      </div>
+    </div>
+    <div class="analysis-panel">
+      <div class="analysis-title">Analisis Harga</div>
+      <div class="analysis-grid">
+        <div class="analysis-item">
+          <div class="a-label">Support</div>
+          <div class="a-val" id="support-val">--</div>
+        </div>
+        <div class="analysis-item">
+          <div class="a-label">Resistance</div>
+          <div class="a-val" id="resistance-val">--</div>
+        </div>
+        <div class="analysis-item">
+          <div class="a-label">Trend</div>
+          <div class="a-val" id="trend-val">--</div>
+        </div>
+        <div class="analysis-item">
+          <div class="a-label">Volatilitas</div>
+          <div class="a-val" id="volatility-val">--</div>
+        </div>
+      </div>
+    </div>
+    <button id="refresh-btn" class="refresh-btn">Refresh Analisis</button>
   </div>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
