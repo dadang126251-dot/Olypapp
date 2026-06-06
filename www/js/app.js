@@ -5,6 +5,8 @@ var candles=[];
 var asset='EURUSD';
 var tf=5;
 var BASE={EURUSD:1.085,GBPUSD:1.27,USDJPY:149.5,BTCUSD:67000,ETHUSD:3500,XAUUSD:2320};
+var BINANCE_MAP={BTCUSD:'BTCUSDT',ETHUSD:'ETHUSDT'};
+var TF_MAP={5:'5m',15:'15m',60:'1h'};
 
 function rand(a,b){return Math.random()*(b-a)+a}
 
@@ -18,6 +20,71 @@ function genCandles(base,n){
 }
 
 function dec(){return asset==='USDJPY'?3:asset==='BTCUSD'||asset==='ETHUSD'||asset==='XAUUSD'?2:5}
+
+function showLoading(on){
+  var btn=document.getElementById('refresh-btn');
+  btn.textContent=on?'Mengambil data...':'Refresh Analisis';
+  btn.disabled=on;
+}
+
+function fetchBinanceCandles(symbol,interval,cb){
+  var url='https://api.binance.com/api/v3/klines?symbol='+symbol+'&interval='+interval+'&limit=60';
+  fetch(url).then(function(r){return r.json();}).then(function(data){
+    var list=data.map(function(k){return{open:parseFloat(k[1]),high:parseFloat(k[2]),low:parseFloat(k[3]),close:parseFloat(k[4])};});
+    BASE[asset]=list[list.length-1].close;
+    cb(list);
+  }).catch(function(){cb(null);});
+}
+
+function fetchForexRate(cb){
+  var pairs={EURUSD:'EUR',GBPUSD:'GBP',USDJPY:'JPY',XAUUSD:null};
+  var target=pairs[asset];
+  if(!target){cb(null);return;}
+  var url=asset==='USDJPY'
+    ?'https://api.frankfurter.app/latest?from=USD&to=JPY'
+    :'https://api.frankfurter.app/latest?from='+target+'&to=USD';
+  fetch(url).then(function(r){return r.json();}).then(function(data){
+    var rate;
+    if(asset==='USDJPY')rate=data.rates&&data.rates.JPY;
+    else rate=data.rates&&data.rates.USD;
+    if(rate){BASE[asset]=rate;cb(rate);}else{cb(null);}
+  }).catch(function(){cb(null);});
+}
+
+function loadRealData(cb){
+  showLoading(true);
+  if(BINANCE_MAP[asset]){
+    fetchBinanceCandles(BINANCE_MAP[asset],TF_MAP[tf]||'5m',function(list){
+      showLoading(false);
+      if(list&&list.length>0){candles=list;drawChart();update();}
+      else{candles=genCandles(BASE[asset],60);drawChart();update();}
+      if(cb)cb();
+    });
+  } else {
+    fetchForexRate(function(rate){
+      showLoading(false);
+      var base=rate||BASE[asset];
+      candles=genCandles(base,60);
+      drawChart();update();
+      if(cb)cb();
+    });
+  }
+}
+
+function fetchLivePrice(){
+  if(BINANCE_MAP[asset]){
+    fetch('https://api.binance.com/api/v3/ticker/price?symbol='+BINANCE_MAP[asset])
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(d.price&&candles.length){
+          var p=parseFloat(d.price);
+          var last=candles[candles.length-1];
+          candles[candles.length-1]={open:last.open,close:p,high:Math.max(last.high,p),low:Math.min(last.low,p)};
+          drawChart();update();
+        }
+      }).catch(function(){});
+  }
+}
 
 function drawChart(){
   var w=canvas.offsetWidth,h=260;
@@ -98,15 +165,19 @@ function update(){
   document.getElementById('macd-val').textContent=macd.toFixed(2);
   bar('stoch-bar',stoch,0,100,'stoch-val');
   var score=0;
-  if(rsi<30)score+=2;else if(rsi>70)score-=2;
-  if(macd>0.5)score+=1;else if(macd<-0.5)score-=1;
-  if(stoch<20)score+=1;else if(stoch>80)score-=1;
+  if(rsi<40)score+=2;else if(rsi>60)score-=2;
+  else if(rsi<50)score+=1;else score-=1;
+  if(macd>0.1)score+=2;else if(macd<-0.1)score-=2;
+  if(stoch<30)score+=2;else if(stoch>70)score-=2;
+  else if(stoch<50)score+=1;else score-=1;
   var sel=document.getElementById('signal-text');
   sel.className='signal-value';
-  if(score>=2){sel.textContent='BUY UP';sel.classList.add('buy');}
-  else if(score<=-2){sel.textContent='SELL DOWN';sel.classList.add('sell');}
+  if(score>=3){sel.textContent='BUY UP';sel.classList.add('buy');}
+  else if(score<=-3){sel.textContent='SELL DOWN';sel.classList.add('sell');}
+  else if(score>0){sel.textContent='LEMAH BUY';sel.classList.add('buy');}
+  else if(score<0){sel.textContent='LEMAH SELL';sel.classList.add('sell');}
   else{sel.textContent='TUNGGU';sel.classList.add('neutral');}
-  document.getElementById('signal-strength').textContent=Math.abs(score)>=3?'KUAT':'SEDANG';
+  document.getElementById('signal-strength').textContent=Math.abs(score)>=5?'KUAT':Math.abs(score)>=3?'SEDANG':'LEMAH';
   var lows=candles.map(function(c){return c.low}),highs=candles.map(function(c){return c.high});
   document.getElementById('support-val').textContent=Math.min.apply(null,lows.slice(-20)).toFixed(dec());
   document.getElementById('resistance-val').textContent=Math.max.apply(null,highs.slice(-20)).toFixed(dec());
@@ -117,27 +188,29 @@ function update(){
   document.getElementById('current-price').textContent=candles[candles.length-1].close.toFixed(dec());
 }
 
-function resetCandles(){candles=genCandles(BASE[asset],60);drawChart();update();}
 function refresh(){drawChart();update();}
 
-document.getElementById('asset-select').addEventListener('change',function(){asset=this.value;resetCandles();});
-document.getElementById('tf-select').addEventListener('change',function(){tf=parseInt(this.value);document.getElementById('signal-duration').textContent=tf+' min';resetCandles();});
-document.getElementById('refresh-btn').addEventListener('click',refresh);
+document.getElementById('asset-select').addEventListener('change',function(){asset=this.value;loadRealData();});
+document.getElementById('tf-select').addEventListener('change',function(){tf=parseInt(this.value);document.getElementById('signal-duration').textContent=tf+' min';loadRealData();});
+document.getElementById('refresh-btn').addEventListener('click',function(){loadRealData();});
 
+// Live tick: ambil harga real tiap 5 detik untuk crypto, simulasi untuk forex
 setInterval(function(){
   if(!candles.length)return;
-  var last=candles[candles.length-1],vol=BASE[asset]*0.001;
-  var nc=last.close+(Math.random()-.5)*vol;
-  candles[candles.length-1]={open:last.open,close:nc,high:Math.max(last.high,nc),low:Math.min(last.low,nc)};
-  drawChart();update();
-  var now=new Date();
-  document.getElementById('clock').textContent=('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2)+':'+('0'+now.getSeconds()).slice(-2);
-},3000);
+  if(BINANCE_MAP[asset]){
+    fetchLivePrice();
+  } else {
+    var last=candles[candles.length-1],vol=BASE[asset]*0.001;
+    var nc=last.close+(Math.random()-.5)*vol;
+    candles[candles.length-1]={open:last.open,close:nc,high:Math.max(last.high,nc),low:Math.min(last.low,nc)};
+    drawChart();update();
+  }
+},5000);
 
 setInterval(function(){
   var now=new Date();
   document.getElementById('clock').textContent=('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2)+':'+('0'+now.getSeconds()).slice(-2);
 },1000);
 
-resetCandles();
+loadRealData();
 })();
