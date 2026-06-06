@@ -117,10 +117,11 @@ function update(){
   document.getElementById('current-price').textContent=candles[candles.length-1].close.toFixed(dec());
 }
 
-function refresh(){candles=genCandles(BASE[asset],60);drawChart();update();}
+function resetCandles(){candles=genCandles(BASE[asset],60);drawChart();update();}
+function refresh(){drawChart();update();}
 
-document.getElementById('asset-select').addEventListener('change',function(){asset=this.value;refresh();});
-document.getElementById('tf-select').addEventListener('change',function(){tf=parseInt(this.value);document.getElementById('signal-duration').textContent=tf+' min';refresh();});
+document.getElementById('asset-select').addEventListener('change',function(){asset=this.value;resetCandles();});
+document.getElementById('tf-select').addEventListener('change',function(){tf=parseInt(this.value);document.getElementById('signal-duration').textContent=tf+' min';resetCandles();});
 document.getElementById('refresh-btn').addEventListener('click',refresh);
 
 setInterval(function(){
@@ -138,5 +139,5 @@ setInterval(function(){
   document.getElementById('clock').textContent=('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2)+':'+('0'+now.getSeconds()).slice(-2);
 },1000);
 
-refresh();
+resetCandles();
 })();
