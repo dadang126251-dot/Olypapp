@@ -30,3 +30,9 @@ body{background:#0a0e1a;color:#e0e6f0;font-family:'Segoe UI',sans-serif;min-heig
 .a-val{font-size:14px;font-weight:600;font-family:monospace}
 .refresh-btn{width:calc(100% - 32px);margin:12px 16px;padding:14px;background:linear-gradient(135deg,#1565c0,#0288d1);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer}
 .refresh-btn:active{opacity:.8}
+.mode-bar{display:flex;align-items:center;gap:8px;padding:8px 16px;background:#0d1220;border-bottom:1px solid #1e2a45}
+.mode-btn{padding:6px 14px;border-radius:20px;border:1px solid #2a3a5c;background:#1a2235;color:#90a4ae;font-size:11px;font-weight:700;letter-spacing:.5px;cursor:pointer;transition:all .2s}
+.mode-btn.mode-active{background:#1565c0;color:#fff;border-color:#1976d2}
+.mode-btn.mode-otc-active{background:#7b1fa2;color:#fff;border-color:#9c27b0}
+.mode-info{font-size:10px;color:#546e7a;margin-left:auto}
+.otc-badge{display:inline-block;background:#7b1fa2;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:4px;letter-spacing:.5px}

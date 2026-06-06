@@ -21,6 +21,7 @@ function showLoading(on){
 var forexBase=0;
 var forexLoaded=false;
 var apiError=false;
+var otcMode=false;
 var TF_INTERVAL={5:'5m',15:'15m',1:'1m'};
 
 function rand(a,b){return Math.random()*(b-a)+a;}
@@ -28,7 +29,8 @@ function rand(a,b){return Math.random()*(b-a)+a;}
 function setLastUpdated(src){
   var now=new Date();
   var t=('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2)+':'+('0'+now.getSeconds()).slice(-2);
-  document.getElementById('last-updated').textContent='Last Updated: '+t+' | Sumber: '+src;
+  var tag=otcMode?' [OTC SYNTHETIC]':'';
+  document.getElementById('last-updated').textContent='Last Updated: '+t+' | Sumber: '+src+tag;
 }
 
 function setError(msg){
@@ -44,9 +46,11 @@ function setError(msg){
 function seedHistory(base){
   priceHistory=[];
   var p=base;
-  for(var i=0;i<50;i++){p=p+p*(rand(-0.0002,0.0002));priceHistory.push(p);}
+  // OTC mode: higher volatility ±0.08% to simulate broker synthetic movement
+  var vol=otcMode?0.0008:0.0002;
+  for(var i=0;i<50;i++){p=p+p*(rand(-vol,vol));priceHistory.push(p);}
   currentPrice=p;prevPrice=priceHistory[48];
-  console.log('[OlympAnalyzer] Seeded forex history with base:',base,'points:',priceHistory.length);
+  console.log('[OlympAnalyzer] Seeded history. Mode:',(otcMode?'OTC':'REAL'),'base:',base,'vol:',vol,'points:',priceHistory.length);
 }
 
 // Load real Binance klines (close prices) into priceHistory
@@ -291,18 +295,49 @@ function liveTick(){
   if(BINANCE_MAP[asset]){
     fetchLiveCrypto(function(p){
       if(!p)return;
-      addPrice(p);
-      setLastUpdated('Binance live tick');
+      if(otcMode){
+        // OTC crypto: use Binance real as anchor, add synthetic drift ±0.05%
+        var drift=p*(rand(-0.0005,0.0005));
+        addPrice(p+drift);
+        console.log('[OlympAnalyzer] OTC tick (crypto). Real:',p,'OTC:',( p+drift).toFixed(2));
+      } else {
+        addPrice(p);
+      }
+      setLastUpdated(otcMode?'Binance anchor + OTC synthetic':'Binance live tick');
       renderAll();
     });
   } else {
-    // Forex: micro-tick ±0.03%
+    // Forex: micro-tick
     var last=priceHistory.length?priceHistory[priceHistory.length-1]:forexBase;
-    var np=last+last*(rand(-0.0003,0.0003));
+    // OTC mode: volatility ±0.08% | Real mode: ±0.03%
+    var vol=otcMode?0.0008:0.0003;
+    var np=last+last*(rand(-vol,vol));
     addPrice(np);
     renderAll();
   }
 }
+
+function applyMode(isOtc){
+  otcMode=isOtc;
+  var btnReal=document.getElementById('mode-real');
+  var btnOtc=document.getElementById('mode-otc');
+  var lbl=document.getElementById('mode-label');
+  if(isOtc){
+    btnReal.className='mode-btn';
+    btnOtc.className='mode-btn mode-otc-active';
+    lbl.textContent='OTC: harga broker sintetis (base = real market)';
+    lbl.style.color='#ce93d8';
+  } else {
+    btnReal.className='mode-btn mode-active';
+    btnOtc.className='mode-btn';
+    lbl.textContent='Harga real market';
+    lbl.style.color='#546e7a';
+  }
+  console.log('[OlympAnalyzer] Mode switched to:',(isOtc?'OTC':'REAL'));
+  initAsset();
+}
+document.getElementById('mode-real').addEventListener('click',function(){if(!otcMode)return;applyMode(false);});
+document.getElementById('mode-otc').addEventListener('click',function(){if(otcMode)return;applyMode(true);});
 
 document.getElementById('asset-select').addEventListener('change',function(){asset=this.value;initAsset();});
 document.getElementById('tf-select').addEventListener('change',function(){
